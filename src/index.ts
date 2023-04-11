@@ -1,3 +1,1 @@
-export const module = () => {
-  console.log("Hello world!");
-};
+console.log("Hello World");
