@@ -23,7 +23,7 @@ This project have five parts:
 1. Project setup.
 2. Creating a supabase database.
 3. Scraping the markdown files.
-4. Vector database and embeddings.
+4. Vector embeddings and databases.
 5. Generating embeddings.
 6. Prompt engineering.
 7. Connecting the knowledge base with chat-gpt.
@@ -153,99 +153,18 @@ First we have to first download the celo docs folder with markdown files using t
 
 After downloading the docs folder you can copy that data in `src/data` folder. We are going to create a new file called `scrape.ts` in the `src/scripts` directory which contains module to scrape the markdown files. Here is the code for the file.
 
-First thing first we need to be able to recursively scrape the markdown files. Here is the script for that. For the sake of time I'm not going to explain the code in detail.
+About scaping the markdown files and generating pages and associated sections I'm not going to go into details for the sake of time, but for now just know that we have these functions in the script:
 
-```ts
-async function walk(dir: string): Promise<string[]> {
-  const immediateFiles = await readdir(dir);
+- walk: recursively go through the data folder and reads the files and return the array of files in data folder.
 
-  const recursiveFiles = await Promise.all(
-    immediateFiles.map(async (file) => {
-      const filePath = join(dir, file);
-      const stats = await stat(filePath);
-      if (stats.isDirectory()) {
-        return walk(filePath);
-      } else if (stats.isFile()) {
-        return [filePath];
-      } else {
-        return [];
-      }
-    })
-  );
+- processMdxForSearch: Processes MDX content for search indexing. It strips all JSX, and splits it into sub-sections based on criteria using `splitTreeBy` function.
 
-  const flattenedFiles = recursiveFiles.reduce(
-    (all, folderContents) => all.concat(folderContents),
-    []
-  );
+### 4. Vector embeddings and databases.
 
-  return flattenedFiles;
-}
-```
+In this section we are going to see the high level overview of vector embedding and database which made celo-gpt successful.
 
-Then we need to process the markdown files and generate sections off of the files. Here we are going to use the `mdast` library to parse the markdown files and generate sections. Here is the code for that.
+#### 4.1. Vector embeddings
 
-```ts
-/**
- * Splits a `mdast` tree into multiple trees based on
- * a predicate function. Will include the splitting node
- * at the beginning of each tree.
- *
- * Useful to split a markdown file into smaller sections.
- */
-function splitTreeBy(tree: Root, predicate: (node: Content) => boolean) {
-  return tree.children.reduce<Root[]>((trees, node) => {
-    const [lastTree] = trees.slice(-1);
-
-    if (!lastTree || predicate(node)) {
-      const tree: Root = u("root", [node]);
-      return trees.concat(tree);
-    }
-
-    lastTree.children.push(node);
-    return trees;
-  }, []);
-}
-
-/**
- * Processes MDX content for search indexing.
- * It extracts metadata, strips it of all JSX,
- * and splits it into sub-sections based on criteria.
- */
-function processMdxForSearch(content: string): ProcessedMdx {
-  const checksum = createHash("sha256").update(content).digest("base64");
-
-  const mdxTree = fromMarkdown(content, {
-    extensions: [mdxjs()],
-    mdastExtensions: [mdxFromMarkdown()],
-  });
-
-  // Remove all MDX elements from markdown
-  const mdTree = filter(
-    mdxTree,
-    (node) =>
-      ![
-        "mdxjsEsm",
-        "mdxJsxFlowElement",
-        "mdxJsxTextElement",
-        "mdxFlowExpression",
-        "mdxTextExpression",
-      ].includes(node.type)
-  );
-
-  if (!mdTree) {
-    return {
-      checksum,
-      sections: [],
-    };
-  }
-
-  const sectionTrees = splitTreeBy(mdTree, (node) => node.type === "heading");
-
-  const sections = sectionTrees.map((tree) => toMarkdown(tree));
-
-  return {
-    checksum,
-    sections,
-  };
-}
-```
+Classifying complex data with traditional databases built with structured data may be insufficient. Fortunately, Machine Learning (ML) techniques can offer a far more helpful representation of complex data by transforming it into vector embeddings.
+Vector embeddings are used to describe complex data
+objects as numeric values in hundreds or thousands of different dimensions.
