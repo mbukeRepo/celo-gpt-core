@@ -24,7 +24,7 @@ This project have five parts:
 2. Creating a supabase database.
 3. Scraping the markdown files.
 4. Vector embeddings and databases.
-5. Generating embeddings.
+5. Generating and storing embeddings.
 6. Prompt engineering.
 7. Connecting the knowledge base with chat-gpt.
 
@@ -161,6 +161,8 @@ About scaping the markdown files and generating pages and associated sections I'
 
 ### 4. Vector embeddings and databases.
 
+---
+
 In this section we are going to see the high level overview of vector embedding and database which made celo-gpt successful.
 
 #### 4.1. Vector embeddings
@@ -168,3 +170,40 @@ In this section we are going to see the high level overview of vector embedding 
 Classifying complex data with traditional databases built with structured data may be insufficient. Fortunately, Machine Learning (ML) techniques can offer a far more helpful representation of complex data by transforming it into vector embeddings.
 Vector embeddings are used to describe complex data
 objects as numeric values in hundreds or thousands of different dimensions.
+
+When data is represented as a vector, it can be used to perform a variety of tasks, including:
+
+- **Similarity search**: Finding similar data objects to a given query object.
+- **Classification**: Classifying data objects into categories.
+- **Clustering**: Grouping data objects into clusters based on their similarity.
+- **Dimensionality reduction**: Reducing the number of dimensions in a data object.
+- **Feature extraction**: Extracting features from a data object.
+
+When data is represented as a vector, data with similar characteristics will be close to each other in vector space. This means that we can use vector embeddings to find similar data objects to a given query object.
+
+![representation of data in vectors](https://raw.githubusercontent.com/mbukeRepo/celo-gpt-core/main/images/vector%20embeddings.jpeg)
+
+#### 4.2. Vector databases.
+
+A vector database indexes and stores vector embeddings for fast retrieval and similarity search.
+
+In this tutorial we are going to use [supabase](https://supabase.io/) as our database. By default supabase uses postgresql as its database. To turn it to a vector database, we are going to use the [pg-vector](https://github.com/pgvector/pgvector) extension to store our vector embeddings. The pg-vector extension is a postgresql extension that provides a vector data type and a set of functions for vector operations. The `vector` data type is a fixed-length array of double-precision floating-point numbers. The vector data type is used to store vector embeddings.
+
+`pg-vector` extension give us the ability to store vector embeddings and it comes with a set of functions for vector operations which we are going to use to perform similarity search.
+In this tutorial we are going to use inner product operator to perform similarity search. The inner product operator is used to calculate the similarity between two vectors. The inner product operator is denoted by `<#>`.
+
+### 5. Generating and storing vector embeddings.
+
+---
+
+In this section we are going to see how we can generate and store vector embeddings for our knowledge base. We are going to use [text-embedding-ada-002](https://openai.com/blog/new-and-improved-embedding-model) model from `openai` to generate high dimension vector embeddings for our knowledge base. We are going to use `supabase` to store those high dimension vector embeddings.
+
+This is the high level overview of the process.
+
+![Structure of our program](https://raw.githubusercontent.com/mbukeRepo/celo-gpt-core/main/images/celo-gpt.jpeg)
+
+We are going to create a new file called `vectorize.ts` in the `src/scripts` directory which contains module to generate and store vector embeddings. Here is the code for the [file](/src/scripts/vectorize.ts).
+
+About generating and storing vector embeddings I'm not going to go into details for the sake of time, but for now just know that we have these function in the script:
+
+- **generateEmbeddings**: Generates vector embeddings for the knowledge base. Then it stores the embeddings in the database.
